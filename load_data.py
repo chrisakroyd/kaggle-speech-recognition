@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
 
+TRAIN_WORDS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go']
+
 
 def get_data(path):
     datadir = Path(path)
@@ -13,10 +15,9 @@ def get_data(path):
 
 
 def prepare_data(df):
-    train_words = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go']
     words = df.word.unique().tolist()
     silence = ['_background_noise_']
-    unknown = [w for w in words if w not in silence + train_words]
+    unknown = [w for w in words if w not in silence + TRAIN_WORDS]
 
     # there are only 6 silence files. Mark them as unknown too.
     df.loc[df.word.isin(silence), 'word'] = 'unknown'

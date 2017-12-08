@@ -7,7 +7,7 @@ from keras.callbacks import TensorBoard
 
 from load_data import load_data
 
-from data_prep_spectograms import spectogram_batch_generator
+from spectogram_generator import spectogram_batch_generator
 
 (x_train, y_train), (x_val, y_val) = load_data()
 
