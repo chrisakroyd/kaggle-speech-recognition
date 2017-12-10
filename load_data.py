@@ -17,6 +17,14 @@ def get_data(path):
     return df
 
 
+def get_test_data(path):
+    datadir = Path(path)
+    files = [(str(f), f.parts[-1]) for f in datadir.glob('**/*.wav') if f]
+    df = pd.DataFrame(files, columns=['path', 'fname'])
+
+    return df
+
+
 def prepare_data(df):
     words = df.word.unique().tolist()
     silence = [BACKGROUND_NOISE]
@@ -39,4 +47,3 @@ def load_data():
     x_train, x_val, y_train, y_val = train_test_split(X, y, test_size=0.3, stratify=y)
 
     return (x_train, y_train), (x_val, y_val), label_binarizer
-

@@ -1,22 +1,29 @@
-import numpy as np
 import pandas as pd
-from load_data import prepare_data, get_data
-from spectogram_generator import log_spectogram
+from load_data import get_test_data
+from spectogram_generator import test_batch_generator
+from math import ceil
+
+test_set = get_test_data('./input/test/audio')
+
+BATCH_SIZE = 32
 
 
 def write_results(model, label_binarizer):
-    test = prepare_data(get_data('../input/test/'))
+    index = []
+    results = []
 
-    predictions = []
-    paths = test.path.tolist()
+    predictions = model.predict_generator(test_batch_generator(test_set, batch_size=BATCH_SIZE),
+                                          steps=ceil(test_set.shape[0] / BATCH_SIZE))
 
-    for path in paths:
-        specgram = log_spectogram([path])
-        pred = model.predict(np.array(specgram))
-        predictions.extend(pred)
+    assert len(predictions) == len(test_set)
 
-    labels = [label_binarizer.inverse_transform(p.reshape(1, -1), threshold=0.5)[0] for p in predictions]
-    test['labels'] = labels
-    test.path = test.path.apply(lambda x: str(x).split('/')[-1])
-    submission = pd.DataFrame({'fname': test.path.tolist(), 'label': labels})
-    submission.to_csv('submission.csv', index=False)
+    for i in range(len(predictions)):
+        prediction = label_binarizer.inverse_transform(predictions[i].reshape(1, -1))[0]
+        index.append(test_set.iloc[i].fname)
+        results.append(prediction)
+
+    df = pd.DataFrame(columns=['fname', 'label'])
+    df['fname'] = index
+    df['label'] = results
+    df.to_csv('sub.csv', index=False)
+
