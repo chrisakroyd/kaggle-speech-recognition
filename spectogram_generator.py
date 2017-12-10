@@ -3,7 +3,7 @@ from scipy.io import wavfile
 import numpy as np
 
 
-def get_specgrams(paths, nsamples=16000):
+def log_spectogram(paths, nsamples=16000):
     # read the wav files
     wavs = [wavfile.read(x)[1] for x in paths]
 
@@ -23,13 +23,22 @@ def get_specgrams(paths, nsamples=16000):
     return specgram
 
 
-def spectogram_batch_generator(x, y, batch_size=16):
-    while True:
-        # choose batch_size random images / labels from the data
-        idx = np.random.randint(0, x.shape[0], batch_size)
-        im = x[idx]
-        label = y[idx]
+def batch_generator(input_x, labels, batch_size=32, shuffle=True):
+    samples_per_epoch = input_x.shape[0]
+    number_of_batches = samples_per_epoch / batch_size
+    counter = 0
 
-        specgram = get_specgrams(im)
+    while True:
+        if shuffle:
+            idx = np.random.randint(0, input_x.shape[0], batch_size)
+        else:
+            idx = np.arange(counter * batch_size, (counter + 1) * batch_size)
+
+        im = input_x[idx]
+        label = labels[idx]
+        specgram = log_spectogram(im)
 
         yield np.concatenate([specgram]), label
+
+        if counter <= number_of_batches:
+            counter = 0
