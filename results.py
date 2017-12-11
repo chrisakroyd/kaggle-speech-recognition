@@ -25,5 +25,5 @@ def write_results(model, label_binarizer):
     df = pd.DataFrame(columns=['fname', 'label'])
     df['fname'] = index
     df['label'] = results
-    df.to_csv('sub.csv', index=False)
+    df.to_csv('sub2.csv', index=False)
 

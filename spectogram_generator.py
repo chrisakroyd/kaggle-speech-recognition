@@ -17,20 +17,20 @@ def log_spectograms(paths, nsamples=16000):
         data.append(d)
 
     # get the specgram
-    specgram = [signal.spectrogram(d, nperseg=256, noverlap=128)[2] for d in data]
-    specgram = [s.reshape(s.shape[0], s.shape[1], -1) for s in specgram]
+    specgram = [log_specgram(d) for d in data]
+    specgram = [s.reshape(s.shape[0], s.shape[1], 1) for s in specgram]
 
     return specgram
 
 
-# def log_specgram(audio, sample_rate=16000, window_size=20, step_size=10, eps=1e-10):
-#     nperseg = int(round(window_size * sample_rate / 1e3))
-#     noverlap = int(round(step_size * sample_rate / 1e3))
-#     _, _, spec = signal.spectrogram(audio, fs=sample_rate,
-#                                     window='hann', nperseg=nperseg,
-#                                     noverlap=noverlap, detrend=False)
-#     return np.log(spec.T.astype(np.float32) + eps)
-#
+def log_specgram(audio, sample_rate=16000, window_size=20, step_size=10, eps=1e-10):
+    nperseg = int(round(window_size * sample_rate / 1e3))
+    noverlap = int(round(step_size * sample_rate / 1e3))
+    _, _, spec = signal.spectrogram(audio, fs=sample_rate,
+                                    window='hann', nperseg=nperseg,
+                                    noverlap=noverlap, detrend=False)
+    return np.log(spec.T.astype(np.float32) + eps)
+
 
 def batch_generator(input_x, labels, batch_size=32, shuffle=True):
     counter = 0
