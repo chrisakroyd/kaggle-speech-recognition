@@ -18,6 +18,11 @@ BATCH_SIZE = 16
 EPOCHS = 20
 NUM_CLASSES = 12
 
+vgg_config = {
+    'VGG11': [(64,), (128,), (256, 256), (512, 512), (512, 512)],
+    'VGG13': [(64, 64), (128, 128), (256, 256), (512, 512), (512, 512)]
+}
+
 
 def get_data_shape():
     wav_path = x_train[0]
@@ -26,28 +31,23 @@ def get_data_shape():
     return spec[0].shape
 
 
-def get_model(shape):
+def get_VGG_model(shape, config):
     model = Sequential()
 
     model.add(BatchNormalization(input_shape=shape))
-    model.add(Conv2D(16, (2, 2), activation='relu'))
-    model.add(Conv2D(16, (2, 2), activation='relu'))
-    model.add(MaxPooling2D(2))
-    model.add(Dropout(0.2))
 
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(2))
-    model.add(Dropout(0.2))
+    for block in config:
+        for filters in block:
+            model.add(Conv2D(filters, (3, 3), activation='relu'))
+            model.add(BatchNormalization(axis=1))
+        model.add(MaxPooling2D(2))
 
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(2))
-    model.add(Dropout(0.2))
     model.add(Flatten())
-
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(7680, activation='relu'))
+    model.add(Dropout(0.2))
     model.add(BatchNormalization())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(512, activation='relu'))
+    model.add(Dropout(0.2))
     model.add(BatchNormalization())
     model.add(Dense(NUM_CLASSES, activation='softmax'))
 
@@ -55,14 +55,14 @@ def get_model(shape):
 
 
 shape = get_data_shape()
-model = get_model(shape)
-model.compile(loss='binary_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+model = get_VGG_model(shape, vgg_config['VGG11'])
+model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 
 model.summary()
 
 # create training and test data.
 tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=BATCH_SIZE)
-checkpoint = ModelCheckpoint('./conv5_dense3.hdf5')
+checkpoint = ModelCheckpoint('./VGG.hdf5')
 
 train_gen = batch_generator(x_train.values, y_train, batch_size=BATCH_SIZE)
 valid_gen = batch_generator(x_val.values, y_val, batch_size=BATCH_SIZE, shuffle=False)
