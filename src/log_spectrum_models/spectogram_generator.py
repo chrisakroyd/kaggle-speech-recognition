@@ -3,6 +3,12 @@ from scipy.io import wavfile
 import numpy as np
 
 
+def get_data_shape(wav_path):
+    spec = log_spectograms([wav_path])
+    print(spec[0].shape)
+    return spec[0].shape
+
+
 def log_spectograms(paths, nsamples=16000):
     # read the wav files
     wavs = [wavfile.read(x)[1] for x in paths]

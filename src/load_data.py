@@ -37,8 +37,8 @@ def prepare_data(df):
     return df
 
 
-def load_data():
-    train = prepare_data(get_data('./input/train/audio/'))
+def load_data(path):
+    train = prepare_data(get_data(path))
 
     label_binarizer = LabelBinarizer()
     X = train.path

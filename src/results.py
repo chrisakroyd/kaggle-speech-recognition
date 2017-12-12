@@ -1,14 +1,13 @@
 import pandas as pd
-from load_data import get_test_data
-from spectogram_generator import test_batch_generator
 from math import ceil
+from src.load_data import get_test_data
 
-test_set = get_test_data('./input/test/audio')
+test_set = get_test_data('../input/test/audio')
 
 BATCH_SIZE = 32
 
 
-def write_results(model, label_binarizer):
+def write_results(model, label_binarizer, test_batch_generator):
     index = []
     results = []
 
