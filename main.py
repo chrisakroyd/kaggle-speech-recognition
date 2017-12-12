@@ -1,17 +1,22 @@
 import time
 
 from keras.callbacks import TensorBoard, ModelCheckpoint
+
 # Utility code.
 from src.load_data import load_data
 from src.results import write_results
 # Data Generators
-from src.log_spectrum_models.spectogram_generator import batch_generator as spectogram_batch_generator,\
+from src.log_spectrum_models.spectogram_generator import batch_generator as spectogram_batch_generator, \
     get_data_shape as get_spectogram_data_shape, test_batch_generator as spectogram_test_batch_generator
-from src.raw_audio_models.raw_audio_generator import batch_generator as audio_batch_generator,\
+from src.raw_audio_models.raw_audio_generator import batch_generator as audio_batch_generator, \
     get_data_shape as get_audio_data_shape, test_batch_generator as audio_test_batch_generator
 # Models
+# Log spectrum based models
 from src.log_spectrum_models.conv1_dense1 import Conv1Dense1Model
 from src.log_spectrum_models.conv5_dense3 import Conv5Dense3Model
+# Raw Audio based models
+
+# Mel cepstrum coefficient based models.
 from src.mel_cepstrum_models.VGG import VGG
 
 (x_train, y_train), (x_val, y_val), label_binarizer = load_data(path='./input/train/audio/')
@@ -39,8 +44,8 @@ else:
     print('INVALID DATA GENERATOR SPECIFIED')
 
 # model_instance = Conv1Dense1Model()
-# model_instance = Conv5Dense3Model()
-model_instance = VGG()
+model_instance = Conv5Dense3Model()
+# model_instance = VGG()
 
 model = model_instance.create_model(get_data_shape(x_train[0]))
 
