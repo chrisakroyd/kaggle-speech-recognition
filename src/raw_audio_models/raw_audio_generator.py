@@ -7,8 +7,7 @@ TARGET_DURATION = 16000
 
 def get_data_shape(wav_path):
     spec = load_audio(wav_path)
-    print(spec[0].shape)
-    return spec[0].shape
+    return spec.shape
 
 
 def load_audio(wav):
@@ -24,7 +23,7 @@ def load_audio(wav):
         audio = audio[0:TARGET_DURATION]
 
     # Small check to make sure I didn't mess up.
-    assert duration == TARGET_DURATION
+    assert len(audio) == TARGET_DURATION
 
     return audio
 
