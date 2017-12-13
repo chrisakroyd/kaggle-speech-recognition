@@ -2,9 +2,9 @@ import time
 from math import ceil
 
 from keras.callbacks import TensorBoard, ModelCheckpoint
-
+from keras.models import load_model
 # Utility code.
-from src.load_data import load_data
+from src.load_data import load_data, get_test_data
 from src.results import write_results
 # Data Generators
 from src.log_spectrum_models.spectogram_generator import batch_generator as spectogram_batch_generator, \
@@ -21,8 +21,11 @@ from src.log_spectrum_models.conv5_dense3 import Conv5Dense3Model
 from src.mel_cepstrum_models.VGG import VGG
 
 (x_train, y_train), (x_val, y_val), label_binarizer = load_data(path='./input/train/audio/')
+test_set = get_test_data(path='./input/test/audio')
 
+TRAIN = True
 WRITE_RESULTS = False
+
 MODEL_TYPE = 'log_spectogram'
 
 batch_generator = 0
@@ -44,26 +47,29 @@ elif MODEL_TYPE == 'mel_cepstrum':
 else:
     print('INVALID DATA GENERATOR SPECIFIED')
 
-# model_instance = Conv1Dense1Model()
 model_instance = Conv5Dense3Model()
+# model_instance = Conv1Dense1Model()
 # model_instance = VGG()
 
-model = model_instance.create_model(get_data_shape(x_train.iloc[0]))
+if TRAIN:
+    model = model_instance.create_model(get_data_shape(x_train.iloc[0]))
 
-tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
-checkpoint = ModelCheckpoint('./test.hdf5', monitor='val_loss')
+    tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
+    checkpoint = ModelCheckpoint(model_instance.checkpoint_path, monitor='val_loss')
 
-train_gen = batch_generator(x_train.values, y_train, batch_size=model_instance.BATCH_SIZE)
-valid_gen = batch_generator(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE)
+    train_gen = batch_generator(x_train.values, y_train, batch_size=model_instance.BATCH_SIZE)
+    valid_gen = batch_generator(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE)
 
-model.fit_generator(
-    generator=train_gen,
-    epochs=model_instance.EPOCHS,
-    steps_per_epoch=ceil(x_train.shape[0] / model_instance.BATCH_SIZE),
-    validation_data=valid_gen,
-    validation_steps=ceil(x_val.shape[0] / model_instance.BATCH_SIZE),
-    callbacks=[tensorboard, checkpoint]
-)
+    model.fit_generator(
+        generator=train_gen,
+        epochs=model_instance.EPOCHS,
+        steps_per_epoch=ceil(x_train.shape[0] / model_instance.BATCH_SIZE),
+        validation_data=valid_gen,
+        validation_steps=ceil(x_val.shape[0] / model_instance.BATCH_SIZE),
+        callbacks=[tensorboard, checkpoint]
+    )
+else:
+    model = load_model(model_instance.checkpoint_path)
 
 if WRITE_RESULTS:
-    write_results(model, label_binarizer, test_batch_generator)
+    write_results(model, label_binarizer, test_batch_generator, test_set)

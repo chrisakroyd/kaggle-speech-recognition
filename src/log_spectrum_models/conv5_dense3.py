@@ -13,6 +13,7 @@ class Conv5Dense3Model:
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
         self.num_classes = num_clases
+        self.checkpoint_path = './conv5_dense3.hdf5'
 
     def create_model(self, shape):
         model = Sequential()

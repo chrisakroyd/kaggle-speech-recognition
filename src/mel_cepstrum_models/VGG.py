@@ -14,10 +14,12 @@ vgg_config = {
 
 class VGG:
     def __init__(self, num_clases=12):
+        config_key = 'VGG11'
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
-        self.config = vgg_config['VGG11']
+        self.config = vgg_config[config_key]
         self.num_classes = num_clases
+        self.checkpoint_path = config_key + '_mel.hdf5'
 
     def create_model(self, shape):
         model = Sequential()
