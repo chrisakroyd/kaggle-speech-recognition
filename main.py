@@ -1,4 +1,5 @@
 import time
+from math import ceil
 
 from keras.callbacks import TensorBoard, ModelCheckpoint
 
@@ -47,21 +48,22 @@ else:
 model_instance = Conv5Dense3Model()
 # model_instance = VGG()
 
-model = model_instance.create_model(get_data_shape(x_train[0]))
+model = model_instance.create_model(get_data_shape(x_train.iloc[0]))
 
 tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
 checkpoint = ModelCheckpoint('./test.hdf5', monitor='val_loss')
 
 train_gen = batch_generator(x_train.values, y_train, batch_size=model_instance.BATCH_SIZE)
-valid_gen = batch_generator(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE, shuffle=False)
+valid_gen = batch_generator(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE)
 
 model.fit_generator(
     generator=train_gen,
     epochs=model_instance.EPOCHS,
-    steps_per_epoch=x_train.shape[0] // model_instance.BATCH_SIZE,
+    steps_per_epoch=ceil(x_train.shape[0] / model_instance.BATCH_SIZE),
     validation_data=valid_gen,
-    validation_steps=x_val.shape[0] // model_instance.BATCH_SIZE,
-    callbacks=[tensorboard, checkpoint])
+    validation_steps=ceil(x_val.shape[0] / model_instance.BATCH_SIZE),
+    callbacks=[tensorboard, checkpoint]
+)
 
 if WRITE_RESULTS:
     write_results(model, label_binarizer, test_batch_generator)
