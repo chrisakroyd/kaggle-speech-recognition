@@ -63,8 +63,8 @@ def test_batch_generator(test_files, batch_size=32):
         idx = np.arange(start, end)
 
         im = test_files.path[idx]
-        specgram = [load_audio(x) for x in im]
+        raw_audio = [load_audio(x) for x in im]
 
-        yield np.concatenate([specgram])
+        yield np.concatenate([raw_audio])
 
         counter += 1

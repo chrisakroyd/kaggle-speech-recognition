@@ -2,6 +2,9 @@ from scipy import signal
 from scipy.io import wavfile
 import numpy as np
 
+SAMPLE_RATE = 16000
+TARGET_DURATION = 16000
+
 
 def get_data_shape(wav_path):
     spec = log_spectograms([wav_path])
@@ -9,33 +12,28 @@ def get_data_shape(wav_path):
     return spec[0].shape
 
 
-def log_spectograms(paths, nsamples=16000):
+def log_spectograms(paths):
     # read the wav files
-    wavs = [wavfile.read(x)[1] for x in paths]
-
-    # zero pad the shorter samples and cut off the long ones.
-    data = []
-    for wav in wavs:
-        if wav.size < 16000:
-            d = np.pad(wav, (nsamples - wav.size, 0), mode='constant')
-        else:
-            d = wav[0:nsamples]
-        data.append(d)
-
-    # get the specgram
-    specgram = [log_specgram(d) for d in data]
-    specgram = [s.reshape(s.shape[0], s.shape[1], 1) for s in specgram]
-
+    specgram = [log_spectogram(wavfile.read(x)[1]) for x in paths]
     return specgram
 
 
-def log_specgram(audio, sample_rate=16000, window_size=20, step_size=10, eps=1e-10):
+def log_spectogram(audio, sample_rate=SAMPLE_RATE, window_size=20, step_size=10, eps=1e-10):
     nperseg = int(round(window_size * sample_rate / 1e3))
     noverlap = int(round(step_size * sample_rate / 1e3))
+
+    if audio.size < TARGET_DURATION:
+        audio = np.pad(audio, (TARGET_DURATION - audio.size, 0), mode='constant')
+    elif audio.size > TARGET_DURATION:
+        audio = audio[0:TARGET_DURATION]
+
     _, _, spec = signal.spectrogram(audio, fs=sample_rate,
                                     window='hann', nperseg=nperseg,
                                     noverlap=noverlap, detrend=False)
-    return np.log(spec.T.astype(np.float32) + eps)
+
+    log_spec = np.log(spec.T.astype(np.float32) + eps)
+    log_spec = log_spec.reshape(log_spec.shape[0], log_spec.shape[1], 1)
+    return log_spec
 
 
 def batch_generator(input_x, labels, batch_size=32, shuffle=True):
