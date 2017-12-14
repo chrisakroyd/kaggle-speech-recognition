@@ -5,6 +5,7 @@ from keras.optimizers import Adam
 # HPARAMs
 BATCH_SIZE = 100
 EPOCHS = 100
+LEARN_RATE = 0.001
 
 vgg_config = {
     'VGG11': [(64,), (128,), (256, 256), (512, 512), (512, 512)],
@@ -17,6 +18,7 @@ class VGG:
         config_key = 'VGG11'
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
+        self.LEARN_RATE = LEARN_RATE
         self.config = vgg_config[config_key]
         self.num_classes = num_clases
         self.checkpoint_path = config_key + '_mel.hdf5'

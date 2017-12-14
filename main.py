@@ -1,7 +1,7 @@
 import time
 from math import ceil
 
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 from keras.models import load_model
 
 # Utility code.
@@ -57,6 +57,9 @@ if TRAIN:
 
     tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
     checkpoint = ModelCheckpoint(model_instance.checkpoint_path, monitor='val_loss')
+    early_stop = EarlyStopping(monitor='val_loss', patience=4, verbose=1, mode='auto')
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5,
+                                  patience=5, min_lr=0.0001)
 
     train_gen = batch_generator(x_train.values, y_train, batch_size=model_instance.BATCH_SIZE)
     valid_gen = batch_generator(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE)
@@ -67,7 +70,7 @@ if TRAIN:
         steps_per_epoch=ceil(x_train.shape[0] / model_instance.BATCH_SIZE),
         validation_data=valid_gen,
         validation_steps=ceil(x_val.shape[0] / model_instance.BATCH_SIZE),
-        callbacks=[tensorboard, checkpoint]
+        callbacks=[tensorboard, checkpoint, early_stop]
     )
 else:
     model = load_model(model_instance.checkpoint_path)

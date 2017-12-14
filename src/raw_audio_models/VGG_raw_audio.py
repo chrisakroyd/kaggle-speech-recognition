@@ -17,14 +17,16 @@ vgg_config = {
 # HPARAMs
 BATCH_SIZE = 64
 EPOCHS = 100
+LEARN_RATE = 0.001
 REG_STRENGTH = 0.0001
 
 
 class VGGRawAudio:
     def __init__(self, num_clases=12):
-        config_key = 'raw_audio_18'
+        config_key = 'raw_audio_11'
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
+        self.LEARN_RATE = LEARN_RATE
         self.num_classes = num_clases
         self.config = vgg_config[config_key]
         self.checkpoint_path = config_key + '.hdf5'
@@ -61,6 +63,6 @@ class VGGRawAudio:
 
         model.summary()
 
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=self.LEARN_RATE), metrics=['accuracy'])
 
         return model

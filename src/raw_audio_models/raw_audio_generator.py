@@ -12,6 +12,10 @@ def get_data_shape(wav_path):
 
 def load_audio(wav):
     audio = librosa.load(wav, sr=SAMPLE_RATE, mono=True)[0].reshape(-1, 1)
+
+    if np.std(audio) == 0:
+        print(wav)
+
     # Normalize the audio.
     audio = (audio - np.mean(audio)) / np.std(audio)
     duration = len(audio)

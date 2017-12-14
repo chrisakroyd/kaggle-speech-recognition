@@ -5,6 +5,7 @@ from keras.optimizers import Adam
 # HPARAMs
 BATCH_SIZE = 16
 EPOCHS = 20
+LEARN_RATE = 0.001
 NUM_CLASSES = 12
 
 
@@ -12,6 +13,7 @@ class Conv5Dense3Model:
     def __init__(self, num_clases=12):
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
+        self.LEARN_RATE = LEARN_RATE
         self.num_classes = num_clases
         self.checkpoint_path = './conv5_dense3.hdf5'
 
