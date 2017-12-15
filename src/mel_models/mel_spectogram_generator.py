@@ -1,5 +1,6 @@
 import numpy as np
 import librosa
+from python_speech_features import mfcc
 
 from src.load_data import load_data
 
@@ -9,32 +10,34 @@ from src.load_data import load_data
 SAMPLE_RATE = 16000
 TARGET_DURATION = 16000
 
+mels = 40
+dct_filters = 40
+n_fft = 480
+
+filters = librosa.filters.dct(40, 40)
+
 
 def get_data_shape(wav_path):
-    spec = load_mfcc(wav_path)
+    spec = load_mel_spec(wav_path)
     return spec.shape
 
 
-def load_mfcc(wav):
+def load_mel_spec(wav):
     audio = librosa.load(wav, sr=SAMPLE_RATE, mono=True)[0]
-
-    if np.std(audio) == 0:
-        print(wav)
-
-    # Normalize the audio.
-    audio = (audio - np.mean(audio)) / np.std(audio)
     duration = len(audio)
 
-    # Crude method for padding/trimming all audio to be one second long
     if duration < TARGET_DURATION:
         audio = np.concatenate((audio, np.zeros(shape=(TARGET_DURATION - duration, 1))))
     elif duration > TARGET_DURATION:
         audio = audio[0:TARGET_DURATION]
 
-    # Small check to make sure I didn't mess up.
-    assert len(audio) == TARGET_DURATION
+    audio = librosa.feature.melspectrogram(audio, sr=SAMPLE_RATE, n_mels=mels, hop_length=160, n_fft=480, fmin=20, fmax=4000)
+    audio[audio > 0] = np.log(audio[audio > 0])
+    # audio = [np.matmul(dct_filters, x) for x in np.split(audio, audio.shape[1], axis=1)]
+    audio = [dct_filters * x for x in np.split(audio, audio.shape[1], axis=1)]
+    audio = np.array(audio, order="F").squeeze(2).astype(np.float32)
 
-    return librosa.feature.mfcc(y=audio, sr=SAMPLE_RATE)
+    return audio
 
 
 def batch_generator(input_x, labels, batch_size=32, shuffle=True):
@@ -50,7 +53,7 @@ def batch_generator(input_x, labels, batch_size=32, shuffle=True):
 
         im = input_x[idx]
         label = labels[idx]
-        raw_audio = [load_mfcc(x) for x in im]
+        raw_audio = [load_mel_spec(x) for x in im]
 
         yield np.concatenate([raw_audio]), label
 
@@ -71,7 +74,7 @@ def test_batch_generator(test_files, batch_size=32):
         idx = np.arange(start, end)
 
         im = test_files.path[idx]
-        raw_audio = [load_mfcc(x) for x in im]
+        raw_audio = [load_mel_spec(x) for x in im]
 
         yield np.concatenate([raw_audio])
 
