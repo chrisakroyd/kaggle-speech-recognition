@@ -3,8 +3,8 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 
 # HPARAMs
-BATCH_SIZE = 16
-EPOCHS = 20
+BATCH_SIZE = 32
+EPOCHS = 6
 LEARN_RATE = 0.001
 NUM_CLASSES = 12
 
@@ -24,16 +24,16 @@ class Conv5Dense3Model:
         model.add(Conv2D(16, (2, 2), activation='relu'))
         model.add(Conv2D(16, (2, 2), activation='relu'))
         model.add(MaxPooling2D(2))
-        model.add(Dropout(0.2))
+        model.add(Dropout(0.25))
 
         model.add(Conv2D(32, (3, 3), activation='relu'))
         model.add(Conv2D(32, (3, 3), activation='relu'))
         model.add(MaxPooling2D(2))
-        model.add(Dropout(0.2))
+        model.add(Dropout(0.25))
 
         model.add(Conv2D(64, (3, 3), activation='relu'))
         model.add(MaxPooling2D(2))
-        model.add(Dropout(0.2))
+        model.add(Dropout(0.25))
         model.add(Flatten())
 
         model.add(Dense(128, activation='relu'))

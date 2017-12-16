@@ -23,7 +23,7 @@ REG_STRENGTH = 0.0001
 
 class VGGRawAudio:
     def __init__(self, num_clases=12):
-        config_key = 'raw_audio_11'
+        config_key = 'raw_audio_18'
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
         self.LEARN_RATE = LEARN_RATE
