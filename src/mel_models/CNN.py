@@ -4,7 +4,7 @@ from keras.optimizers import Adam
 
 # HPARAMs
 BATCH_SIZE = 100
-EPOCHS = 10
+EPOCHS = 50
 LEARN_RATE = 0.001
 NUM_CLASSES = 12
 
@@ -15,21 +15,20 @@ class ConvMelModel:
         self.EPOCHS = EPOCHS
         self.LEARN_RATE = LEARN_RATE
         self.num_classes = num_clases
-        self.checkpoint_path = './conv5_dense3.hdf5'
+        self.checkpoint_path = './conv_mel_tutorial.hdf5'
 
     def create_model(self, shape):
         model = Sequential()
         model.add(Conv2D(64, kernel_size=(8, 20), padding='same', input_shape=shape, activation='relu'))
         model.add(Dropout(0.5))
-        model.add(BatchNormalization())
+        model.add(MaxPooling2D(2))
         model.add(Conv2D(64, kernel_size=(4, 10), padding='same', activation='relu'))
-        model.add(MaxPooling2D(1))
         model.add(Dropout(0.5))
         model.add(Flatten())
         model.add(Dense(self.num_classes, activation='softmax'))
 
         model.summary()
 
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=self.LEARN_RATE), metrics=['accuracy'])
 
         return model

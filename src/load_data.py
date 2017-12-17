@@ -25,6 +25,12 @@ def get_test_data(path):
     return df
 
 
+def get_background_noise(path):
+    datadir = Path(path)
+    files = [str(f) for f in datadir.glob('**/*.wav') if f]
+    return files
+
+
 def prepare_data(df):
     words = df.word.unique().tolist()
     silence = [BACKGROUND_NOISE]
@@ -44,6 +50,6 @@ def load_data(path):
     X = train.path
     y = label_binarizer.fit_transform(train.word)
 
-    x_train, x_val, y_train, y_val = train_test_split(X, y, test_size=0.3, stratify=y)
+    x_train, x_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=2017, stratify=y)
 
     return (x_train, y_train), (x_val, y_val), label_binarizer

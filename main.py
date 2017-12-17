@@ -25,15 +25,16 @@ test_set = get_test_data(path='./input/test/audio')
 TRAIN = True
 WRITE_RESULTS = True
 
-MODEL_TYPE = 'log_spectogram'
+# MODEL_TYPE = 'log_spectogram'
+# MODEL_TYPE = 'log_spectrogram_signal'
 # MODEL_TYPE = 'raw_audio'
-# MODEL_TYPE = 'mel_cepstrum'
+MODEL_TYPE = 'mel_cepstrum'
 
-model_instance = Conv5Dense3Model()
+# model_instance = Conv5Dense3Model()
 # model_instance = VGGRawAudio()
 # model_instance = ConvAudioModel()
 # model_instance = Conv1Dense1Model()
-# model_instance = ConvMelModel()
+model_instance = ConvMelModel()
 # model_instance = VGG()
 
 audio_preprocessor = AudioDataGenerator(generator_method=MODEL_TYPE)
@@ -48,7 +49,7 @@ if TRAIN:
                                   patience=5, min_lr=0.0001)
 
     train_gen = audio_preprocessor.flow(x_train.values, y_train, batch_size=model_instance.BATCH_SIZE)
-    valid_gen = audio_preprocessor.flow(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE)
+    valid_gen = audio_preprocessor.flow_in_mem(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE)
 
     model.fit_generator(
         generator=train_gen,
