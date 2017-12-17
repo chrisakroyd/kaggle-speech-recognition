@@ -1,18 +1,21 @@
 from pathlib import Path
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelBinarizer
+import numpy as np
 
 TRAIN_WORDS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go']
 BACKGROUND_NOISE = '_background_noise_'
 SILENCE_CLASS = 'silence'
 UNKNOWN_CLASS = 'unknown'
 
+RANDOM_SEED = 59185
+silence_percentage = 10
+unknown_percentage = 10
+
 
 def get_data(path):
     datadir = Path(path)
-    files = [(str(f), f.parts[-2]) for f in datadir.glob('**/*.wav') if f]
-    df = pd.DataFrame(files, columns=['path', 'word'])
+    files = [(str(f), f.parts[-2], '/'.join(str(i) for i in f.parts[-2:])) for f in datadir.glob('**/*.wav') if f]
+    df = pd.DataFrame(files, columns=['path', 'word', 'hash_path'])
 
     return df
 
@@ -43,13 +46,25 @@ def prepare_data(df):
     return df
 
 
-def load_data(path):
-    train = prepare_data(get_data(path))
+def load_data(path, val_path):
+    data_set = prepare_data(get_data(path))
+    x_train, x_val, y_train, y_val = [], [], [], []
 
-    label_binarizer = LabelBinarizer()
-    X = train.path
-    y = label_binarizer.fit_transform(train.word)
+    labels = data_set.word.unique().tolist()
+    label_index = pd.get_dummies(pd.Series(labels))
 
-    x_train, x_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=2017, stratify=y)
+    with open(val_path) as fin:
+        validation_files = set(fin.read().splitlines())
 
-    return (x_train, y_train), (x_val, y_val), label_binarizer
+    for i in range(len(data_set)):
+        data_item = data_set.iloc[i]
+        label = label_index[data_item.word].values.tolist()
+
+        if data_item.hash_path in validation_files:
+            x_val.append(data_item.path)
+            y_val.append(label)
+        else:
+            x_train.append(data_item.path)
+            y_train.append(label)
+
+    return (np.array(x_train), np.array(y_train)), (np.array(x_val), np.array(y_val)), label_index

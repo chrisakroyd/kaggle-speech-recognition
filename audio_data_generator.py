@@ -57,6 +57,7 @@ def load_mfcc(audio, sample_rate=SAMPLE_RATE, window_size_ms=25, window_stride_m
 
 
 # AUDIO PREPROCESSING FUNCTIONS
+# Shift the start/end of audio by -n to n milliseconds
 def shift_audio(audio, ms_shift=100):
     ms = 16
     time_shift_dist = int(np.random.uniform(-(ms_shift * ms), (ms_shift * ms)))
@@ -64,11 +65,38 @@ def shift_audio(audio, ms_shift=100):
     return audio
 
 
+# Add in random background noise
 def add_background_noises(audio, background_wav):
     bg_audio = background_wav
     bg_audio_start_idx = np.random.randint(bg_audio.shape[0] - TARGET_DURATION)
     bg_audio_slice = bg_audio[bg_audio_start_idx: bg_audio_start_idx + 16000] * np.random.uniform(0, 0.1)
     return audio + bg_audio_slice
+
+
+# adjust volume(amplitude)
+def amplitude_scaling(audio, multiplier=0.2):
+    return audio * np.random.uniform(1.0 - multiplier, 1.0 + multiplier)
+
+
+# Adjust the length of the signal
+def time_strech(audio, multiplier=0.2):
+    rate = np.random.uniform(1.0 - multiplier, 1.0 + multiplier)
+    return librosa.effects.time_stretch(audio, rate)
+
+
+# Adjust the pitch of the signal
+def pitch_scaling(audio, max_step_shift=2.0):
+    steps = np.random.uniform(-max_step_shift, max_step_shift)
+    return librosa.effects.pitch_shift(audio, sr=SAMPLE_RATE, n_steps=steps)
+
+
+def trim_pad_audio(audio):
+    duration = len(audio)
+    if duration < TARGET_DURATION:
+        audio = np.pad(audio, (TARGET_DURATION - audio.size, 0), mode='constant')
+    elif duration > TARGET_DURATION:
+        audio = audio[0:TARGET_DURATION]
+    return audio
 
 
 class AudioDataGenerator(object):
@@ -92,37 +120,44 @@ class AudioDataGenerator(object):
 
     def preprocess(self, wav, train=True):
         audio = librosa.load(wav, sr=SAMPLE_RATE, mono=True)[0]
+
         # Audio padding/chopping to standardise the length of samples.
-        duration = len(audio)
-        if duration < TARGET_DURATION:
-            audio = np.pad(audio, (TARGET_DURATION - audio.size, 0), mode='constant')
-        elif duration > TARGET_DURATION:
-            audio = audio[0:TARGET_DURATION]
+        audio = trim_pad_audio(audio)
 
         # Perform some pre-processing steps.
         if train:
             # Time shift start/end of audio of between -100ms and 100ms.
             audio = shift_audio(audio)
+            # Time Stretch the audio
+            # audio = time_strech(audio)
+            # Some pre-processing steps can adjust length of audio, therefore trim again.
+            # audio = trim_pad_audio(audio)
+
+            # Pitch shift the audio
+            # audio = pitch_scaling(audio)
+            # Adjust the volume of the recording (Amplitude scaling)
+            # audio = amplitude_scaling(audio)
             # Mix in background noise
-            background_noise_file = self.background_noises[np.random.randint(len(self.background_noises))]
-            audio = add_background_noises(audio, background_noise_file)
+            if np.random.uniform(0.0, 1.0) > 0.8:
+                background_noise_file = self.background_noises[np.random.randint(len(self.background_noises))]
+                audio = add_background_noises(audio, background_noise_file)
 
         # Small check to make sure I didn't mess up.
         assert len(audio) == TARGET_DURATION
 
         return audio
 
-    def flow(self, input_x, labels, batch_size=32):
+    def flow(self, input_x, labels, batch_size=32, train=True):
         while True:
             idx = np.random.randint(0, input_x.shape[0], batch_size)
             im = input_x[idx]
             label = labels[idx]
-            specgram = [self.spec_func(self.preprocess(x)) for x in im]
+            specgram = [self.spec_func(self.preprocess(x, train=train)) for x in im]
 
             yield np.concatenate([specgram]), label
 
-    def flow_in_mem(self, input_x, labels, batch_size=32):
-        input_preprocessed = np.array([self.spec_func(self.preprocess(x)) for x in input_x])
+    def flow_in_mem(self, input_x, labels, batch_size=32, train=True):
+        input_preprocessed = np.array([self.spec_func(self.preprocess(x, train=train)) for x in input_x])
 
         while True:
             idx = np.random.randint(0, input_x.shape[0], batch_size)

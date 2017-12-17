@@ -19,7 +19,7 @@ from src.mel_models.VGG import VGG
 
 from audio_data_generator import AudioDataGenerator
 
-(x_train, y_train), (x_val, y_val), label_binarizer = load_data(path='./input/train/audio/')
+(x_train, y_train), (x_val, y_val), id2name = load_data(path='./input/train/audio/', val_path='./input/train/validation_list.txt')
 test_set = get_test_data(path='./input/test/audio')
 
 TRAIN = True
@@ -40,7 +40,7 @@ model_instance = ConvMelModel()
 audio_preprocessor = AudioDataGenerator(generator_method=MODEL_TYPE)
 
 if TRAIN:
-    model = model_instance.create_model(audio_preprocessor.get_data_shape(x_train.iloc[0]))
+    model = model_instance.create_model(audio_preprocessor.get_data_shape(x_train[0]))
 
     tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
     checkpoint = ModelCheckpoint(model_instance.checkpoint_path, monitor='val_loss')
@@ -48,8 +48,8 @@ if TRAIN:
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5,
                                   patience=5, min_lr=0.0001)
 
-    train_gen = audio_preprocessor.flow(x_train.values, y_train, batch_size=model_instance.BATCH_SIZE)
-    valid_gen = audio_preprocessor.flow_in_mem(x_val.values, y_val, batch_size=model_instance.BATCH_SIZE)
+    train_gen = audio_preprocessor.flow(x_train, y_train, batch_size=model_instance.BATCH_SIZE)
+    valid_gen = audio_preprocessor.flow_in_mem(x_val, y_val, batch_size=model_instance.BATCH_SIZE, train=False)
 
     model.fit_generator(
         generator=train_gen,
@@ -63,4 +63,4 @@ else:
     model = load_model(model_instance.checkpoint_path)
 
 if WRITE_RESULTS:
-    write_results(model, label_binarizer, audio_preprocessor.flow_test, test_set)
+    write_results(model, id2name, audio_preprocessor.flow_test, test_set)

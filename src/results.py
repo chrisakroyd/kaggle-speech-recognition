@@ -1,11 +1,12 @@
 import pandas as pd
+import numpy as np
 from math import ceil
 
 
 BATCH_SIZE = 32
 
 
-def write_results(model, label_binarizer, test_batch_generator, test_set):
+def write_results(model, label, test_batch_generator, test_set):
     index = []
     results = []
 
@@ -19,7 +20,7 @@ def write_results(model, label_binarizer, test_batch_generator, test_set):
     print('Writing ' + str(len(predictions)) + ' predictions...')
 
     for i in range(len(predictions)):
-        prediction = label_binarizer.inverse_transform(predictions[i].reshape(1, -1))[0]
+        prediction = label[np.argmax(predictions[i], axis=-1)]
         index.append(test_set.iloc[i].fname)
         results.append(prediction)
 
