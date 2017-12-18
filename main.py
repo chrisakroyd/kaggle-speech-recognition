@@ -26,15 +26,15 @@ test_set = get_test_data(path='./input/test/audio')
 TRAIN = True
 WRITE_RESULTS = True
 
-MODEL_TYPE = 'log_spectogram'
+# MODEL_TYPE = 'log_spectogram'
 # MODEL_TYPE = 'log_spectrogram_signal'
 # MODEL_TYPE = 'raw_audio'
-# MODEL_TYPE = 'mel_cepstrum'
+MODEL_TYPE = 'mel_cepstrum'
 
-model_instance = Conv5Dense3Model()
+# model_instance = Conv5Dense3Model()
 # model_instance = VGGRawAudio()
 # model_instance = ConvAudioModel()
-# model_instance = ConvMelModel()
+model_instance = ConvMelModel()
 # model_instance = VGG()
 
 audio_preprocessor = AudioDataGenerator(generator_method=MODEL_TYPE)
@@ -46,7 +46,7 @@ if TRAIN:
     checkpoint = ModelCheckpoint(model_instance.checkpoint_path, monitor='val_loss')
     early_stop = EarlyStopping(monitor='val_loss', patience=8, verbose=1)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
-                                  patience=4,
+                                  patience=3,
                                   verbose=1,
                                   epsilon=0.0001,
                                   mode='min', min_lr=0.0001)

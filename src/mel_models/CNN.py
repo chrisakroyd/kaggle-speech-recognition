@@ -1,6 +1,6 @@
 from keras.layers import Conv2D, BatchNormalization, MaxPooling2D, Dense, Flatten, Dropout
 from keras.models import Sequential
-from keras.optimizers import Adam
+from keras.optimizers import SGD
 
 # HPARAMs
 BATCH_SIZE = 100
@@ -29,6 +29,6 @@ class ConvMelModel:
 
         model.summary()
 
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=self.LEARN_RATE), metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=self.LEARN_RATE, momentum=0.9, decay=0.00001), metrics=['accuracy'])
 
         return model

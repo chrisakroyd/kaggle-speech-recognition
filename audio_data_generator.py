@@ -56,8 +56,10 @@ def load_mfcc(audio, sample_rate=SAMPLE_RATE, window_size_ms=30, window_stride_m
     mfcc = librosa.feature.mfcc(S=S, n_mfcc=40)
     return mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
 
+
 def log_mel_filterbanks(audio, sample_rate=SAMPLE_RATE):
     return
+
 
 # AUDIO PREPROCESSING FUNCTIONS
 # Shift the start/end of audio by -n to n milliseconds
@@ -98,7 +100,8 @@ def trim_pad_audio(audio):
     if duration < TARGET_DURATION:
         audio = np.pad(audio, (TARGET_DURATION - audio.size, 0), mode='constant')
     elif duration > TARGET_DURATION:
-        audio = audio[0:TARGET_DURATION]
+        rand_start = np.random.randint(audio.shape[0] - TARGET_DURATION)
+        audio = audio[rand_start:rand_start+TARGET_DURATION]
     return audio
 
 
