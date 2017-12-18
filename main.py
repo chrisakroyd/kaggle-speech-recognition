@@ -19,22 +19,22 @@ from src.mel_models.VGG import VGG
 
 from audio_data_generator import AudioDataGenerator
 
-(x_train, y_train), (x_val, y_val), id2name = load_data(path='./input/train/audio/', val_path='./input/train/validation_list.txt')
+(x_train, y_train), (x_val, y_val), label_binarizer = load_data(path='./input/train/audio/',
+                                                                val_path='./input/train/validation_list.txt')
 test_set = get_test_data(path='./input/test/audio')
 
 TRAIN = True
 WRITE_RESULTS = True
 
-# MODEL_TYPE = 'log_spectogram'
+MODEL_TYPE = 'log_spectogram'
 # MODEL_TYPE = 'log_spectrogram_signal'
 # MODEL_TYPE = 'raw_audio'
-MODEL_TYPE = 'mel_cepstrum'
+# MODEL_TYPE = 'mel_cepstrum'
 
-# model_instance = Conv5Dense3Model()
+model_instance = Conv5Dense3Model()
 # model_instance = VGGRawAudio()
 # model_instance = ConvAudioModel()
-# model_instance = Conv1Dense1Model()
-model_instance = ConvMelModel()
+# model_instance = ConvMelModel()
 # model_instance = VGG()
 
 audio_preprocessor = AudioDataGenerator(generator_method=MODEL_TYPE)
@@ -44,9 +44,12 @@ if TRAIN:
 
     tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
     checkpoint = ModelCheckpoint(model_instance.checkpoint_path, monitor='val_loss')
-    early_stop = EarlyStopping(monitor='val_loss', patience=4, verbose=1, mode='auto')
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5,
-                                  patience=5, min_lr=0.0001)
+    early_stop = EarlyStopping(monitor='val_loss', patience=8, verbose=1)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
+                                  patience=4,
+                                  verbose=1,
+                                  epsilon=0.0001,
+                                  mode='min', min_lr=0.0001)
 
     train_gen = audio_preprocessor.flow(x_train, y_train, batch_size=model_instance.BATCH_SIZE)
     valid_gen = audio_preprocessor.flow_in_mem(x_val, y_val, batch_size=model_instance.BATCH_SIZE, train=False)
@@ -59,8 +62,8 @@ if TRAIN:
         validation_steps=ceil(x_val.shape[0] / model_instance.BATCH_SIZE),
         callbacks=[tensorboard, checkpoint, early_stop]
     )
-else:
-    model = load_model(model_instance.checkpoint_path)
+
+model = load_model(model_instance.checkpoint_path)
 
 if WRITE_RESULTS:
-    write_results(model, id2name, audio_preprocessor.flow_test, test_set)
+    write_results(model, label_binarizer, audio_preprocessor.flow_test, test_set)

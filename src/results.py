@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from math import ceil
 
 
@@ -20,7 +19,7 @@ def write_results(model, label, test_batch_generator, test_set):
     print('Writing ' + str(len(predictions)) + ' predictions...')
 
     for i in range(len(predictions)):
-        prediction = label[np.argmax(predictions[i], axis=-1)]
+        prediction = label.inverse_transform(predictions[i].reshape(1, -1))[0]
         index.append(test_set.iloc[i].fname)
         results.append(prediction)
 

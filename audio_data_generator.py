@@ -8,6 +8,7 @@ SAMPLE_RATE = 16000
 TARGET_DURATION = 16000
 
 background_noise_path = './input/train/audio/_background_noise_'
+background_noise_mixing_probability = 0.8
 
 
 def log_spectogram_signal(wav, sample_rate=SAMPLE_RATE, window_size=20, step_size=10, eps=1e-10):
@@ -46,7 +47,7 @@ def load_audio(audio):
     return audio.reshape(-1, 1)
 
 
-def load_mfcc(audio, sample_rate=SAMPLE_RATE, window_size_ms=25, window_stride_ms=10, n_mels=128):
+def load_mfcc(audio, sample_rate=SAMPLE_RATE, window_size_ms=30, window_stride_ms=10, n_mels=128):
     window_size_samples = int(sample_rate * window_size_ms / 1000)
     window_stride_samples = int(sample_rate * window_stride_ms / 1000)
 
@@ -55,6 +56,8 @@ def load_mfcc(audio, sample_rate=SAMPLE_RATE, window_size_ms=25, window_stride_m
     mfcc = librosa.feature.mfcc(S=S, n_mfcc=40)
     return mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
 
+def log_mel_filterbanks(audio, sample_rate=SAMPLE_RATE):
+    return
 
 # AUDIO PREPROCESSING FUNCTIONS
 # Shift the start/end of audio by -n to n milliseconds
@@ -66,10 +69,10 @@ def shift_audio(audio, ms_shift=100):
 
 
 # Add in random background noise
-def add_background_noises(audio, background_wav):
+def add_background_noises(audio, background_wav, volume_range=0.1):
     bg_audio = background_wav
     bg_audio_start_idx = np.random.randint(bg_audio.shape[0] - TARGET_DURATION)
-    bg_audio_slice = bg_audio[bg_audio_start_idx: bg_audio_start_idx + 16000] * np.random.uniform(0, 0.1)
+    bg_audio_slice = bg_audio[bg_audio_start_idx: bg_audio_start_idx + 16000] * np.random.uniform(0, volume_range)
     return audio + bg_audio_slice
 
 
@@ -138,7 +141,7 @@ class AudioDataGenerator(object):
             # Adjust the volume of the recording (Amplitude scaling)
             # audio = amplitude_scaling(audio)
             # Mix in background noise
-            if np.random.uniform(0.0, 1.0) > 0.8:
+            if np.random.uniform(0.0, 1.0) < background_noise_mixing_probability:
                 background_noise_file = self.background_noises[np.random.randint(len(self.background_noises))]
                 audio = add_background_noises(audio, background_noise_file)
 

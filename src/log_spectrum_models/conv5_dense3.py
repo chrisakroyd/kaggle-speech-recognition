@@ -4,7 +4,7 @@ from keras.optimizers import Adam
 
 # HPARAMs
 BATCH_SIZE = 16
-EPOCHS = 25
+EPOCHS = 12
 LEARN_RATE = 0.001
 NUM_CLASSES = 12
 
