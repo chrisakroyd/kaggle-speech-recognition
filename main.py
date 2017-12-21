@@ -1,5 +1,15 @@
 import time
 from math import ceil
+import keras.backend as K
+
+# Only use the amount of memory we require rather than the maximum
+if 'tensorflow' == K.backend():
+    import tensorflow as tf
+    from keras.backend.tensorflow_backend import set_session
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    config.gpu_options.visible_device_list = "0"
+    set_session(tf.Session(config=config))
 
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 from keras.models import load_model
@@ -10,11 +20,9 @@ from src.results import write_results
 
 # Models
 # Log spectrum based models
-from src.log_spectrum_models.conv5_dense3 import Conv5Dense3Model
+from src.general_CNN import CNNModel
 # Raw Audio based models
-from src.raw_audio_models.VGG_raw_audio import VGGRawAudio
 # Mel cepstrum coefficient based models.
-from src.mel_models.CNN import ConvMelModel
 from src.mel_models.VGG import VGG
 
 from audio_data_generator import AudioDataGenerator
@@ -29,13 +37,15 @@ WRITE_RESULTS = True
 # MODEL_TYPE = 'log_spectogram'
 # MODEL_TYPE = 'log_spectrogram_signal'
 # MODEL_TYPE = 'raw_audio'
-MODEL_TYPE = 'mel_cepstrum'
+MODEL_TYPE = 'mfcc'
+# MODEL_TYPE = 'log_mel_filterbanks'
 
-# model_instance = Conv5Dense3Model()
+model_instance = CNNModel()
+# model_instance = VGG()
+
 # model_instance = VGGRawAudio()
 # model_instance = ConvAudioModel()
-model_instance = ConvMelModel()
-# model_instance = VGG()
+# model_instance = ConvMelModel()
 
 audio_preprocessor = AudioDataGenerator(generator_method=MODEL_TYPE)
 

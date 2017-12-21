@@ -1,21 +1,21 @@
-from keras.layers import Conv2D, BatchNormalization, MaxPooling2D, Dense, Dropout, Flatten
+from keras.layers import Conv2D, BatchNormalization, MaxPooling2D, Dense, Dropout, GlobalMaxPool2D
 from keras.models import Sequential
 from keras.optimizers import Adam
 
 # HPARAMs
-BATCH_SIZE = 16
-EPOCHS = 12
-LEARN_RATE = 0.001
+BATCH_SIZE = 64
+EPOCHS = 25
+LEARN_RATE = 0.005
 NUM_CLASSES = 12
 
 
-class Conv5Dense3Model:
+class CNNModel:
     def __init__(self, num_clases=12):
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
         self.LEARN_RATE = LEARN_RATE
         self.num_classes = num_clases
-        self.checkpoint_path = './conv5_dense3.hdf5'
+        self.checkpoint_path = './best_model.hdf5'
 
     def create_model(self, shape):
         model = Sequential()
@@ -34,7 +34,8 @@ class Conv5Dense3Model:
         model.add(Conv2D(64, (3, 3), activation='relu'))
         model.add(MaxPooling2D(2))
         model.add(Dropout(0.2))
-        model.add(Flatten())
+
+        model.add(GlobalMaxPool2D())
 
         model.add(Dense(128, activation='relu'))
         model.add(BatchNormalization())
@@ -44,7 +45,7 @@ class Conv5Dense3Model:
 
         model.summary()
 
-        model.compile(loss='binary_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 
         return model
 

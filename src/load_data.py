@@ -12,8 +12,8 @@ UNKNOWN_LABEL = 'unknown'
 RANDOM_SEED = 59185
 CONTROL_BALANCE = True
 
-silence_percentage = 15
-unknown_percentage = 15
+silence_percentage = 10
+unknown_percentage = 10
 
 
 def get_data(path):

@@ -1,4 +1,4 @@
-from keras.layers import Conv1D, BatchNormalization, MaxPooling1D, Dense, Activation, Dropout
+from keras.layers import Conv1D, BatchNormalization, MaxPooling1D, Dense, Activation, Dropout, GlobalAveragePooling1D, concatenate, GlobalMaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
 
@@ -20,11 +20,17 @@ class ConvAudioModel:
     def create_model(self, shape):
         model = Sequential()
         model.add(Conv1D(8, kernel_size=3, padding='same', input_shape=shape))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
+        model.add(MaxPooling1D(2, padding='same'))
         for i in range(1, 6):
             model.add(Conv1D(8 * (2 ** i), 3, padding='same'))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
             model.add(MaxPooling1D(2, padding='same'))
+
+        model.add(GlobalAveragePooling1D())
+        model.add(GlobalMaxPooling1D())
 
         model.add(Dense(1024, activation='relu'))
         model.add(Dropout(0.2))
