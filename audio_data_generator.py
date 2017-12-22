@@ -47,18 +47,30 @@ def load_audio(audio):
     return audio.reshape(-1, 1)
 
 
-def load_mfcc(audio, sample_rate=SAMPLE_RATE, window_size_ms=30, window_stride_ms=10, n_mels=128):
-    window_size_samples = int(sample_rate * window_size_ms / 1000)
-    window_stride_samples = int(sample_rate * window_stride_ms / 1000)
+dct_filters = librosa.filters.dct(40, 40)
 
-    S = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=n_mels, hop_length=window_stride_samples,
-                                       n_fft=window_size_samples)
-    mfcc = librosa.feature.mfcc(S=S, n_mfcc=40)
+
+def load_mfcc(audio, sample_rate=SAMPLE_RATE, n_mels=40, n_fft=480, normalize=True):
+    mfcc = librosa.feature.melspectrogram(audio, sr=sample_rate, n_mels=n_mels, hop_length=160, n_fft=n_fft, fmin=20, fmax=4000)
+    mfcc[mfcc > 0] = np.log(mfcc[mfcc > 0])
+    mfcc = [np.matmul(dct_filters, x) for x in np.split(mfcc, mfcc.shape[1], axis=1)]
+    mfcc = np.array(mfcc, order="F").squeeze(2).astype(np.float32)
+
+    if normalize:
+        mfcc -= (np.mean(mfcc, axis=0) + 1e-8)
+
     return mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
 
 
-def log_mel_filterbanks(audio, sample_rate=SAMPLE_RATE):
-    return
+def log_mel_filterbanks(audio, sample_rate=SAMPLE_RATE, n_mels=40, n_fft=480, normalize=True):
+    filter_bank = librosa.feature.melspectrogram(audio, sr=sample_rate, n_mels=n_mels, hop_length=160, n_fft=n_fft,
+                                                 fmin=20, fmax=4000)
+    filter_bank[filter_bank > 0] = np.log(filter_bank[filter_bank > 0])
+
+    if normalize:
+        filter_bank -= (np.mean(filter_bank, axis=0) + 1e-8)
+
+    return filter_bank.reshape(filter_bank.shape[0], filter_bank.shape[1], 1)
 
 
 # AUDIO PREPROCESSING FUNCTIONS
@@ -68,6 +80,12 @@ def shift_audio(audio, ms_shift=100):
     time_shift_dist = int(np.random.uniform(-(ms_shift * ms), (ms_shift * ms)))
     audio = np.roll(audio, time_shift_dist)
     return audio
+
+
+def get_silence_slice(audio):
+    silence_start_idx = np.random.randint(audio.shape[0] - TARGET_DURATION)
+    silence_slice = audio[silence_start_idx: silence_start_idx + TARGET_DURATION]
+    return silence_slice
 
 
 # Add in random background noise
@@ -100,8 +118,7 @@ def trim_pad_audio(audio):
     if duration < TARGET_DURATION:
         audio = np.pad(audio, (TARGET_DURATION - audio.size, 0), mode='constant')
     elif duration > TARGET_DURATION:
-        rand_start = np.random.randint(audio.shape[0] - TARGET_DURATION)
-        audio = audio[rand_start:rand_start+TARGET_DURATION]
+        audio = audio[0:TARGET_DURATION]
     return audio
 
 
@@ -114,8 +131,10 @@ class AudioDataGenerator(object):
             self.spec_func = log_spectogram
         elif generator_method == 'raw_audio':
             self.spec_func = load_audio
-        elif generator_method == 'mel_cepstrum':
+        elif generator_method == 'mfcc':
             self.spec_func = load_mfcc
+        elif generator_method == 'log_mel_filterbanks':
+            self.spec_func = log_mel_filterbanks
         else:
             print('INVALID DATA GENERATOR SPECIFIED')
 
@@ -124,29 +143,34 @@ class AudioDataGenerator(object):
         print(spec.shape)
         return spec.shape
 
-    def preprocess(self, wav, train=True):
+    def preprocess(self, wav, label=None, train=True):
         audio = librosa.load(wav, sr=SAMPLE_RATE, mono=True)[0]
-
-        # Audio padding/chopping to standardise the length of samples.
-        audio = trim_pad_audio(audio)
 
         # Perform some pre-processing steps.
         if train:
-            # Time shift start/end of audio of between -100ms and 100ms.
-            audio = shift_audio(audio)
-            # Time Stretch the audio
-            # audio = time_strech(audio)
-            # Some pre-processing steps can adjust length of audio, therefore trim again.
-            # audio = trim_pad_audio(audio)
+            if label != 'silence':
+                # Audio padding/chopping to standardise the length of samples.
+                audio = trim_pad_audio(audio)
 
-            # Pitch shift the audio
-            # audio = pitch_scaling(audio)
-            # Adjust the volume of the recording (Amplitude scaling)
-            # audio = amplitude_scaling(audio)
-            # Mix in background noise
-            if np.random.uniform(0.0, 1.0) < background_noise_mixing_probability:
-                background_noise_file = self.background_noises[np.random.randint(len(self.background_noises))]
-                audio = add_background_noises(audio, background_noise_file)
+                # Adjust the volume of the recording (Amplitude scaling)
+                audio = amplitude_scaling(audio)
+                # Time shift start/end of audio of between -100ms and 100ms.
+                audio = shift_audio(audio)
+                # Time Stretch the audio
+                # audio = time_strech(audio)
+                # Some pre-processing steps can adjust length of audio, therefore trim again.
+                # audio = trim_pad_audio(audio)
+
+                # Pitch shift the audio
+                # audio = pitch_scaling(audio)
+                # Mix in background noise
+                if np.random.uniform(0.0, 1.0) < background_noise_mixing_probability:
+                    background_noise_file = self.background_noises[np.random.randint(len(self.background_noises))]
+                    audio = add_background_noises(audio, background_noise_file)
+            else:
+                audio = get_silence_slice(audio)
+
+        audio = trim_pad_audio(audio)
 
         # Small check to make sure I didn't mess up.
         assert len(audio) == TARGET_DURATION
@@ -158,12 +182,14 @@ class AudioDataGenerator(object):
             idx = np.random.randint(0, input_x.shape[0], batch_size)
             im = input_x[idx]
             label = labels[idx]
-            specgram = [self.spec_func(self.preprocess(x, train=train)) for x in im]
+            specgram = [self.spec_func(self.preprocess(im[i], label[i], train=train)) for i in range(len(im))]
 
             yield np.concatenate([specgram]), label
 
     def flow_in_mem(self, input_x, labels, batch_size=32, train=True):
-        input_preprocessed = np.array([self.spec_func(self.preprocess(x, train=train)) for x in input_x])
+        input_preprocessed = np.array([self.spec_func(
+            self.preprocess(input_x[i], labels[i], train=train)
+        ) for i in range(len(input_x))])
 
         while True:
             idx = np.random.randint(0, input_x.shape[0], batch_size)

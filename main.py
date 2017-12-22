@@ -54,7 +54,7 @@ if TRAIN:
 
     tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
     checkpoint = ModelCheckpoint(model_instance.checkpoint_path, monitor='val_loss')
-    early_stop = EarlyStopping(monitor='val_loss', patience=8, verbose=1)
+    early_stop = EarlyStopping(monitor='val_loss', patience=4, verbose=1)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
                                   patience=3,
                                   verbose=1,
