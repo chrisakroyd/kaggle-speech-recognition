@@ -41,6 +41,15 @@ def log_spectogram(audio, sample_rate=SAMPLE_RATE, window_size=20, step_size=10,
     return log_spectrogram.reshape(log_spectrogram.shape[0], log_spectrogram.shape[1], 1)
 
 
+def log_mel_spectrogram(audio, sample_rate=SAMPLE_RATE, n_mels=40, n_fft=480, normalize=False):
+    mel_spec = librosa.feature.melspectrogram(audio, sr=sample_rate, n_mels=n_mels, hop_length=160, n_fft=n_fft, fmin=20, fmax=4000)
+    mel_spec[mel_spec > 0] = np.log(mel_spec[mel_spec > 0])
+    if normalize:
+        mel_spec -= (np.mean(mel_spec, axis=0) + 1e-8)
+
+    return mel_spec.reshape(mel_spec.shape[0], mel_spec.shape[1], 1)
+
+
 def load_audio(audio):
     # Normalize the audio.
     audio = (audio - np.mean(audio)) / np.std(audio)
@@ -50,7 +59,7 @@ def load_audio(audio):
 dct_filters = librosa.filters.dct(40, 40)
 
 
-def load_mfcc(audio, sample_rate=SAMPLE_RATE, n_mels=40, n_fft=480, normalize=True):
+def load_mfcc(audio, sample_rate=SAMPLE_RATE, n_mels=40, n_fft=400, normalize=True):
     mfcc = librosa.feature.melspectrogram(audio, sr=sample_rate, n_mels=n_mels, hop_length=160, n_fft=n_fft, fmin=20, fmax=4000)
     mfcc[mfcc > 0] = np.log(mfcc[mfcc > 0])
     mfcc = [np.matmul(dct_filters, x) for x in np.split(mfcc, mfcc.shape[1], axis=1)]
@@ -129,6 +138,8 @@ class AudioDataGenerator(object):
         self.background_noises = [librosa.load(bg_wav, sr=SAMPLE_RATE)[0] for bg_wav in self.background_noises]
         if generator_method == 'log_spectogram':
             self.spec_func = log_spectogram
+        elif generator_method == 'log_mel_spectrogram':
+            self.spec_func = log_mel_spectrogram
         elif generator_method == 'raw_audio':
             self.spec_func = load_audio
         elif generator_method == 'mfcc':
