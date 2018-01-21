@@ -21,12 +21,6 @@ from src.results import write_results
 # Models
 # Log spectrum based models
 from src.general_CNN import CNNModel
-# Raw Audio based models
-from src.raw_audio_models.CNN import ConvAudioModel
-# Mel cepstrum coefficient based models.
-from src.mel_models.VGG import VGG
-from src.mel_models.DenseNet import DenseNetModel
-from src.mel_models.ResNet import ResNet
 
 from audio_data_generator import AudioDataGenerator
 
@@ -37,18 +31,9 @@ test_set = get_test_data(path='./input/test/audio')
 TRAIN = True
 WRITE_RESULTS = True
 
-# MODEL_TYPE = 'log_spectogram'
-# MODEL_TYPE = 'raw_audio'
-# MODEL_TYPE = 'mfcc'
 MODEL_TYPE = 'log_mel_spectrogram'
-# MODEL_TYPE = 'log_mel_filterbanks'
 
-# model_instance = CNNModel()
-# model_instance = ConvAudioModel()
-# model_instance = DenseNetModel()
-model_instance = VGG()
-# model_instance = ResNet()
-
+model_instance = CNNModel()
 
 audio_preprocessor = AudioDataGenerator(generator_method=MODEL_TYPE)
 

@@ -23,17 +23,17 @@ class VGG:
         model.add(BatchNormalization(input_shape=shape))
 
         # # Block 1
-        model.add(Conv2D(8, (3, 3), activation='relu', padding='same', name='block1_conv1'))
-        model.add(Conv2D(8, (3, 3), activation='relu', padding='same', name='block1_conv2'))
+        model.add(Conv2D(16, (3, 3), activation='relu', padding='same', name='block1_conv1'))
+        model.add(Conv2D(16, (3, 3), activation='relu', padding='same', name='block1_conv2'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool'))
 
         # Block 2
-        model.add(Conv2D(16, (3, 3), activation='relu', padding='same', name='block2_conv1'))
-        model.add(Conv2D(16, (3, 3), activation='relu', padding='same', name='block2_conv2'))
+        model.add(Conv2D(32, (3, 3), activation='relu', padding='same', name='block2_conv1'))
+        model.add(Conv2D(32, (3, 3), activation='relu', padding='same', name='block2_conv2'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool'))
 
         # Block 3
-        model.add(Conv2D(32, (3, 3), activation='relu', padding='same', name='block3_conv1'))
+        model.add(Conv2D(64, (3, 3), activation='relu', padding='same', name='block3_conv1'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
 
         # Classification block
