@@ -17,21 +17,20 @@ from keras.models import load_model
 # Utility code.
 from src.load_data import load_data, get_test_data
 from src.results import write_results
+# Model
+from src.models.general_CNN import CNNModel
+# Generator and pre-processing.
+from src.audio_data_generator import AudioDataGenerator
 
-# Models
-# Log spectrum based models
-from src.general_CNN import CNNModel
-
-from audio_data_generator import AudioDataGenerator
-
-(x_train, y_train), (x_val, y_val), label_binarizer = load_data(path='./input/train/audio/',
-                                                                val_path='./input/train/validation_list.txt')
-test_set = get_test_data(path='./input/test/audio')
 
 TRAIN = True
 WRITE_RESULTS = True
-
+TRAIN_PATH = './input/train/audio/'
+TEST_PATH = './input/test/audio'
+VAL_FILE_PATH = './input/train/validation_list.txt'
 MODEL_TYPE = 'log_mel_spectrogram'
+
+(x_train, y_train), (x_val, y_val), label_binarizer = load_data(path=TRAIN_PATH, val_path=VAL_FILE_PATH)
 
 model_instance = CNNModel()
 
@@ -64,7 +63,7 @@ if TRAIN:
         callbacks=[tensorboard, checkpoint, early_stop]
     )
 
-model = load_model(model_instance.checkpoint_path)
-
 if WRITE_RESULTS:
+    test_set = get_test_data(path=TEST_PATH)
+    model = load_model(model_instance.checkpoint_path)
     write_results(model, label_binarizer, audio_preprocessor.flow_test, test_set)
