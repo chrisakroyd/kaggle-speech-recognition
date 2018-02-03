@@ -50,7 +50,7 @@ def prepare_data(df):
     return df
 
 
-def load_data(path, val_path):
+def load_data(path, val_path, control_balance=CONTROL_BALANCE):
     data_set = prepare_data(get_data(path))
     x_train, x_val, y_train, y_val = [], [], [], []
     silence_x, silence_y, unknown_x, unknown_y = [], [], [], []
@@ -87,7 +87,7 @@ def load_data(path, val_path):
             x_train.append(data_item.path)
             y_train.append(label)
 
-    if CONTROL_BALANCE:
+    if control_balance:
         set_size = len(x_train)
         silence_size = int(ceil(set_size * silence_percentage / 100))
         unknown_size = int(ceil(set_size * unknown_percentage / 100))
