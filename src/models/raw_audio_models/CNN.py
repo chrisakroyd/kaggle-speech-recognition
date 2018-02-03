@@ -1,4 +1,4 @@
-from keras.layers import Conv1D, BatchNormalization, MaxPooling1D, Dense, Activation, Dropout, GlobalAveragePooling1D, concatenate, GlobalMaxPooling1D
+from keras.layers import Conv1D, BatchNormalization, MaxPooling1D, Dense, Activation, Dropout, GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
 
@@ -10,6 +10,9 @@ NUM_CLASSES = 12
 
 
 class ConvAudioModel:
+    """
+        Simple Convolutional Neural Network working on raw audio, roughly equivalent to VGG-11
+    """
     def __init__(self, num_clases=12):
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS
@@ -31,7 +34,6 @@ class ConvAudioModel:
 
         # model.add(GlobalAveragePooling1D())
         model.add(GlobalMaxPooling1D())
-        # x_1d = concatenate([x_1d_branch_1, x_1d_branch_2])
 
         model.add(Dense(1024, activation='relu'))
         model.add(Dropout(0.2))
