@@ -10,7 +10,13 @@ This repository represents my entry into the recent [Kaggle Speech Recognition C
     - Scipy 1.0.0
     - Sklearn 0.19.1
     - Pandas 0.21.0
-    
+
+### Running the Code
+
+1. Download the competition data from [The Competition website](https://www.kaggle.com/c/tensorflow-speech-recognition-challenge/data).
+2. Extract both the training and test data into the /input/ folder.
+3. run `Python main.py` from the root folder.
+
 ### Structure
 ##### Folder Layout
 * input
