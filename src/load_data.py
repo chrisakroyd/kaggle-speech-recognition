@@ -85,6 +85,7 @@ def load_data(path, val_path, control_balance=CONTROL_BALANCE):
     :param path: File path to the train directory for data loading.
     :param val_path: The file path of the validation.txt file. This is used to stably assign the train/val set so
     no speaker appears in both.
+    :param control_balance: Whether we should contrl the balance of classes within the dataset.
     :return: (x_train, y_train), (x_val, y_val), label_binarizer:
     """
     data_set = prepare_data(get_data(path))
