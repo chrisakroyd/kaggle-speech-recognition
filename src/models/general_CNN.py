@@ -10,6 +10,9 @@ NUM_CLASSES = 12
 
 
 class CNNModel:
+    """
+    CNN model that is my best submission.
+    """
     def __init__(self, num_clases=12):
         self.BATCH_SIZE = BATCH_SIZE
         self.EPOCHS = EPOCHS

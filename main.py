@@ -25,26 +25,30 @@ from src.audio_data_generator import AudioDataGenerator
 
 TRAIN = True
 WRITE_RESULTS = True
+# File paths to data
 TRAIN_PATH = './input/train/audio/'
 TEST_PATH = './input/test/audio'
 VAL_FILE_PATH = './input/train/validation_list.txt'
-MODEL_TYPE = 'log_mel_spectrogram'
+# What feature representation we use.
+FEATURE_REP = 'log_mel_spectrogram'
 
 (x_train, y_train), (x_val, y_val), label_binarizer = load_data(path=TRAIN_PATH, val_path=VAL_FILE_PATH)
 
 model_instance = CNNModel()
 
-audio_preprocessor = AudioDataGenerator(generator_method=MODEL_TYPE)
+audio_preprocessor = AudioDataGenerator(generator_method=FEATURE_REP)
 
 if TRAIN:
     model = model_instance.create_model(audio_preprocessor.get_data_shape(x_train[0]))
 
     tensorboard = TensorBoard(log_dir='./logs/{}'.format(time.time()), batch_size=model_instance.BATCH_SIZE)
     checkpoint = ModelCheckpoint(model_instance.checkpoint_path, monitor='val_loss')
+
     early_stop = EarlyStopping(monitor='val_loss',
                                patience=7,
                                verbose=1,
                                min_delta=0.00001)
+
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
                                   patience=2,
                                   verbose=1,

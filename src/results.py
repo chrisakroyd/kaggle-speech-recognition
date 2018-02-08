@@ -6,6 +6,13 @@ BATCH_SIZE = 32
 
 
 def write_results(model, label, test_batch_generator, test_set):
+    """
+    Runs the predications and then writes all the results to a csv file.
+    :param model: Keras model to run the predictions on.
+    :param label: The label binarizer that was used for training - this is to go from predictions to labels.
+    :param test_batch_generator: A Generator for test examples.
+    :param test_set: The full test set.
+    """
     index = []
     results = []
 
