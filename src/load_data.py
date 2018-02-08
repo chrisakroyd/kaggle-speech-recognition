@@ -76,7 +76,7 @@ def prepare_data(df):
 
 
 # @TODO revist and rework this function to be cleaner.
-def load_data(path, val_path):
+def load_data(path, val_path, control_balance=CONTROL_BALANCE):
     """
     Loads the file paths for all the files in the data set, optionally controlling the balance so that no one
     class dominates.
@@ -123,7 +123,7 @@ def load_data(path, val_path):
             x_train.append(data_item.path)
             y_train.append(label)
 
-    if CONTROL_BALANCE:
+    if control_balance:
         set_size = len(x_train)
         silence_size = int(ceil(set_size * silence_percentage / 100))
         unknown_size = int(ceil(set_size * unknown_percentage / 100))
